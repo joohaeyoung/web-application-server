@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import model.User;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
 	
@@ -29,7 +31,6 @@ public class RequestHandler extends Thread {
     
     public void run() {
     
-    	
     	//클라이언
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
                 connection.getPort());
@@ -50,31 +51,39 @@ public class RequestHandler extends Thread {
         		return ;
         	}
         	
-       
         	String url = HttpRequestUtils.getUrl(line);
+        	
+        	Map<String,String> headers = new HashMap<String,String>();
+        	
+        	while(!"".equals(line)) {
+        		
+        		log.debug("header :{}",line );
+        		line = br.readLine();
+        		String[] headerTokens = line.split(": ");
+        		if( headerTokens.length==2) {
+        			headers.put(headerTokens[0], headerTokens[1]);
+        		}
+        	}
+        	
+        	log.debug("Content-Length : {}", headers.get("Content-Length"));
         	
         	
         	if( url.startsWith("/user/create") ) {
         		
-        		int index = url.indexOf("?");
-        		String requestPath = url.substring(0,index);
-        		String queryString = url.substring(index+1);
-        		Map<String,String> params =HttpRequestUtils.parseQueryString(queryString);
+        		String requestBody = IOUtils.readData(br,  Integer.parseInt(headers.get("Content-Length")));
+        		log.debug("Request Body: {}", requestBody);       		
         		
+        		Map<String,String> params =HttpRequestUtils.parseQueryString(requestBody);
         		User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
-        		
         		log.debug("User : {}", user);
-        		
         		url = "/index.html";
-        		
         	}
-        
+        	
         	/*
         	while(!"".equals(line)) {
         		
         		log.debug("header :{}",line );
         		line = br.readLine();
-        		
         	}
         	*/
         	
@@ -113,4 +122,5 @@ public class RequestHandler extends Thread {
             log.error(e.getMessage());
         }
     }
+    
 }
