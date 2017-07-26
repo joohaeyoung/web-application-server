@@ -52,7 +52,6 @@ public class RequestHandler extends Thread {
         	}
         	
         	String url = HttpRequestUtils.getUrl(line);
-        	
         	Map<String,String> headers = new HashMap<String,String>();
         	
         	while(!"".equals(line)) {
@@ -76,24 +75,24 @@ public class RequestHandler extends Thread {
         		Map<String,String> params =HttpRequestUtils.parseQueryString(requestBody);
         		User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
         		log.debug("User : {}", user);
-        		url = "/index.html";
-        	}
-        	
-        	/*
-        	while(!"".equals(line)) {
         		
-        		log.debug("header :{}",line );
-        		line = br.readLine();
+        		DataOutputStream dos = new DataOutputStream(out);
+                response302Header(dos);
+                
+           
+        	}else {
+        		
+        		DataOutputStream dos = new DataOutputStream(out);
+                byte[] body = Files.readAllBytes(new File("./webapp"+url).toPath());
+                
+                response200Header(dos, body.length);
+                
+                responseBody(dos, body);
+        		
         	}
-        	*/
         	
-        	DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = Files.readAllBytes(new File("./webapp"+url).toPath());
-            
-            response200Header(dos, body.length);
-            
-            responseBody(dos, body);
-            
+       
+    
         } catch (IOException e) {
             
         	log.error(e.getMessage());
@@ -101,6 +100,7 @@ public class RequestHandler extends Thread {
         }
     }
 
+    
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
     	
         try {
@@ -112,6 +112,21 @@ public class RequestHandler extends Thread {
             log.error(e.getMessage());
         }
     }
+    
+    private void response302Header(DataOutputStream dos) {
+    	
+        try {
+        	
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: /index.html\r\n");// 클라이언트location 정보를 활용해서 재 요청 보내라. 
+            
+            dos.writeBytes("\r\n");
+        
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+    
     
     private void responseBody(DataOutputStream dos, byte[] body) {
     
