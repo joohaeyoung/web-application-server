@@ -51,9 +51,10 @@ public class RequestHandler extends Thread {
         	}
         	
        
-         	//첫번 째 라인에서 index.html을 추출한다. 
         	String url = HttpRequestUtils.getUrl(line);
-        	if( url.startsWith("/user") ) {
+        	
+        	
+        	if( url.startsWith("/user/create") ) {
         		
         		int index = url.indexOf("?");
         		String requestPath = url.substring(0,index);
@@ -68,7 +69,6 @@ public class RequestHandler extends Thread {
         		
         	}
         
-        	
         	/*
         	while(!"".equals(line)) {
         		
