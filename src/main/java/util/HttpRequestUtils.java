@@ -13,6 +13,7 @@ import com.google.common.collect.Maps;
 import webserver.RequestHandler;
 
 public class HttpRequestUtils {
+<<<<<<< HEAD
 	
 	private static final Logger log = LoggerFactory.getLogger(HttpRequestUtils.class);
 	
@@ -34,11 +35,21 @@ public class HttpRequestUtils {
      * @return
      */
 	
+=======
+    /**
+     * @param queryString은
+     *            URL에서 ? 이후에 전달되는 field1=value1&field2=value2 형식임
+     * @return
+     */
+>>>>>>> refs/remotes/origin/was-step1-bad-version
     public static Map<String, String> parseQueryString(String queryString) {
         return parseValues(queryString, "&");
     }
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> refs/remotes/origin/was-step1-bad-version
     /**
      * @param 쿠키
      *            값은 name1=value1; name2=value2 형식임
@@ -58,7 +69,10 @@ public class HttpRequestUtils {
                 .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
     }
 
+<<<<<<< HEAD
    
+=======
+>>>>>>> refs/remotes/origin/was-step1-bad-version
     static Pair getKeyValue(String keyValue, String regex) {
         if (Strings.isNullOrEmpty(keyValue)) {
             return null;
