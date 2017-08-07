@@ -15,20 +15,20 @@ public class WebServer {
     public static void main(String args[]) throws Exception {
     	
         int port = 0;
-        
+  
         if (args == null || args.length == 0) {
             port = DEFAULT_PORT;
         } else {
             port = Integer.parseInt(args[0]);
         }
-
+        
         // 서버소켓을 생성한다. 웹서버는 기본적으로 8080번 포트를 사용한다.
         try (ServerSocket listenSocket = new ServerSocket(port)) {
         	
             log.info("Web Application Server started {} port.", port);
 
             // 사용자의 요청이 있을 때 까지 대기한다.
-            // 사용자의 요청이 많을수 있다.  while문으로 계속 요청을 잡는다. 
+            // 사용자의 요청이 많을수 있다.  while문으로 계속 요청을 잡는다.
             Socket connection;
             while ((connection = listenSocket.accept()) != null) {
             	
