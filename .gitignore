@@ -4,9 +4,5 @@
 /.classpath
 /.project
 /.idea
-<<<<<<< HEAD
 *.iml
 .DS_Store
-=======
-web-application-server.iml
->>>>>>> refs/remotes/origin/was-step1-bad-version
