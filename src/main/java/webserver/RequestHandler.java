@@ -19,7 +19,6 @@ import model.User;
 import util.HttpRequestUtils;
 import util.IOUtils;
 
-
 public class RequestHandler extends Thread {
 
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -29,13 +28,13 @@ public class RequestHandler extends Thread {
 	public RequestHandler(Socket connectionSocket) {
 		this.connection = connectionSocket;
 	}
-
+	
 	public void run() {
-
+		
 		// 클라이언
 		log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
 				connection.getPort());
-
+		
 		// 클라이언트와 서버의 통신을 inputstream 과 outputstream 을 이용한다.
 		// try 안에 스트림을 얻어오면 catch 에서는 자동으로 close가 된다.
 
@@ -105,7 +104,16 @@ public class RequestHandler extends Thread {
 					response302Header(dos);
 				}
 				
-			} else {
+			}else if(url.endsWith(".css")) {
+				
+				DataOutputStream dos = new DataOutputStream(out);
+				byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+				response200HeaderWithCss(dos, body.length );
+				responseBody(dos, body);
+				
+				
+			}
+			else {
 				
 				DataOutputStream dos = new DataOutputStream(out);
 				byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
@@ -138,6 +146,32 @@ public class RequestHandler extends Thread {
 		}	
 	}
 	
+	/*
+	private void response200HeaderWithJs(DataOutputStream dos, int lengthOfBodyContent) {
+
+		try {
+			dos.writeBytes("HTTP/1.1 200 OK \r\n");
+			dos.writeBytes("Content-Type: text/js;charset=utf-8\r\n");
+			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	*/
+	
+	private void response200HeaderWithCss(DataOutputStream dos, int lengthOfBodyContent) {
+
+		try {
+			dos.writeBytes("HTTP/1.1 200 OK \r\n");
+			dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
+			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	
 	private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
 
 		try {
@@ -162,6 +196,7 @@ public class RequestHandler extends Thread {
 			log.error(e.getMessage());
 		}
 	}
+	
 	private void responseBody(DataOutputStream dos, byte[] body) {
 
 		try {
