@@ -22,6 +22,7 @@ import util.IOUtils;
 import db.DataBase;
 
 public class RequestHandler extends Thread {
+	
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     private Socket connection;
@@ -29,52 +30,39 @@ public class RequestHandler extends Thread {
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
     }
-
+    
     public void run() {
+    	
         log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(),
                 connection.getPort());
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-            String line = br.readLine();
-            if (line == null) {
-                return;
-            }
-
-            log.debug("request line : {}", line);
-            String[] tokens = line.split(" ");
-
-            int contentLength = 0;
-            boolean logined = false;
-            while (!line.equals("")) {
-                line = br.readLine();
-                log.debug("header : {}", line);
-
-                if (line.contains("Content-Length")) {
-                    contentLength = getContentLength(line);
-                }
-
-                if (line.contains("Cookie")) {
-                    logined = isLogin(line);
-                }
-            }
-
-            String url = getDefaultUrl(tokens);
+        	
+        	HttpRequest request = new HttpRequest(in);
+        	
+            String url = getDefaultUrl( request.getPath() );
+            
             if ("/user/create".equals(url)) {
-                String body = IOUtils.readData(br, contentLength);
-                Map<String, String> params = HttpRequestUtils.parseQueryString(body);
-                User user = new User(params.get("userId"), params.get("password"), params.get("name"),
-                        params.get("email"));
+            	
+                User user = new User(
+                		
+                		request.getParameter("userId"),
+                		request.getParameter("password"), 
+                		request.getParameter("name"), 
+                		request.getParameter("email"));
+                        
                 log.debug("user : {}", user);
                 DataBase.addUser(user);
                 DataOutputStream dos = new DataOutputStream(out);
                 response302Header(dos);
+                
+                
             } else if ("/user/login".equals(url)) {
-                String body = IOUtils.readData(br, contentLength);
-                Map<String, String> params = HttpRequestUtils.parseQueryString(body);
-                User user = DataBase.findUserById(params.get("userId"));
+         
+                User user = DataBase.findUserById(request.getParameter("userId") );
                 if (user != null) {
-                    if (user.login(params.get("password"))) {
+                    if (user.login(request.getParameter("userId"))) {
+                    	
                         DataOutputStream dos = new DataOutputStream(out);
                         response302LoginSuccessHeader(dos);
                     } else {
@@ -83,8 +71,10 @@ public class RequestHandler extends Thread {
                 } else {
                     responseResource(out, "/user/login_failed.html");
                 }
+                
             } else if ("/user/list".equals(url)) {
-                if (!logined) {
+            	
+                if (!isLogin(request.getHeader("Cookie"))) {
                     responseResource(out, "/user/login.html");
                     return;
                 }
@@ -143,14 +133,13 @@ public class RequestHandler extends Thread {
         return Integer.parseInt(headerTokens[1].trim());
     }
 
-    private String getDefaultUrl(String[] tokens) {
-        String url = tokens[1];
-        if (url.equals("/")) {
-            url = "/index.html";
+    private String getDefaultUrl(String path) {
+        if (path.equals("/")) {
+            return "/index.html";
         }
-        return url;
+        return path;
     }
-
+    
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
@@ -186,7 +175,7 @@ public class RequestHandler extends Thread {
     private void response302LoginSuccessHeader(DataOutputStream dos) {
         try {
             dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Set-Cookie: logined=true \r\n");
+            dos.writeBytes("Set-Cookie: logined=true; path=/ \r\n");
             dos.writeBytes("Location: /index.html \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
